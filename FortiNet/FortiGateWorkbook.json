@@ -1,0 +1,57 @@
+{
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "workbookDisplayName": {
+      "type": "string",
+      "defaultValue": "Fortigate Threats",
+      "metadata": {
+        "description": "Workbook to Display (hopefully) usefull Fortigate Firewall Data in Sentinel"
+      }
+    },
+    "workbookType": {
+      "type": "string",
+      "defaultValue": "sentinel",
+      "metadata": {
+        "description": "The gallery that the workbook will been shown under. Supported values include workbook, tsg, etc. Usually, this is 'workbook'"
+      }
+    },
+    "workbookSourceId": {
+      "type": "string",
+      "defaultValue": "/subscriptions/cb5cec77-24c5-42a8-ab76-87837f101c9c/resourcegroups/rg-sentinel/providers/microsoft.operationalinsights/workspaces/siem-cmit-001",
+      "metadata": {
+        "description": "The id of resource instance to which the workbook will be associated"
+      }
+    },
+    "workbookId": {
+      "type": "string",
+      "defaultValue": "[newGuid()]",
+      "metadata": {
+        "description": "The unique guid for this workbook instance"
+      }
+    }
+  },
+  "resources": [
+    {
+      "name": "[parameters('workbookId')]",
+      "type": "microsoft.insights/workbooks",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2022-04-01",
+      "dependsOn": [],
+      "kind": "shared",
+      "properties": {
+        "displayName": "[parameters('workbookDisplayName')]",
+        "serializedData": "{\"version\":\"Notebook/1.0\",\"items\":[{\"type\":9,\"content\":{\"version\":\"KqlParameterItem/1.0\",\"parameters\":[{\"id\":\"63ddfd51-395c-4a75-aa59-6ef2faa4fa8b\",\"version\":\"KqlParameterItem/1.0\",\"name\":\"Timerange\",\"type\":4,\"isRequired\":true,\"typeSettings\":{\"selectableValues\":[{\"durationMs\":300000},{\"durationMs\":900000},{\"durationMs\":1800000},{\"durationMs\":3600000},{\"durationMs\":14400000},{\"durationMs\":43200000},{\"durationMs\":86400000},{\"durationMs\":172800000},{\"durationMs\":259200000},{\"durationMs\":604800000},{\"durationMs\":1209600000},{\"durationMs\":2419200000},{\"durationMs\":2592000000},{\"durationMs\":5184000000},{\"durationMs\":7776000000}],\"allowCustom\":true},\"timeContext\":{\"durationMs\":86400000},\"value\":{\"durationMs\":3600000}}],\"style\":\"pills\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\"},\"name\":\"parameters - 3\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"// The query_now parameter represents the time (in UTC) at which the scheduled analytics rule ran to produce this alert.\\r\\nset query_now = datetime(2023-12-28T12:24:13.3739260Z);\\r\\nlet IPRegex = '[0-9]{1,3}\\\\\\\\.[0-9]{1,3}\\\\\\\\.[0-9]{1,3}\\\\\\\\.[0-9]{1,3}';\\r\\nlet dt_lookBack = 1h; // Look back 1 hour for CommonSecurityLog events\\r\\nlet ioc_lookBack = 14d; // Look back 14 days for threat intelligence indicators\\r\\n// Fetch threat intelligence indicators related to IP addresses\\r\\nlet IP_Indicators = ThreatIntelligenceIndicator\\r\\n    | where TimeGenerated >= ago(ioc_lookBack)\\r\\n    | summarize LatestIndicatorTime = arg_max(TimeGenerated, *) by IndicatorId\\r\\n    | where Active == true and ExpirationDateTime > now()\\r\\n    | where isnotempty(NetworkIP)\\r\\n        or isnotempty(EmailSourceIpAddress)\\r\\n        or isnotempty(NetworkDestinationIP)\\r\\n        or isnotempty(NetworkSourceIP)\\r\\n    | extend TI_ipEntity = iff(isnotempty(NetworkIP), NetworkIP, NetworkDestinationIP)\\r\\n    | extend TI_ipEntity = iff(isempty(TI_ipEntity) and isnotempty(NetworkSourceIP), NetworkSourceIP, TI_ipEntity)\\r\\n    | extend TI_ipEntity = iff(isempty(TI_ipEntity) and isnotempty(EmailSourceIpAddress), EmailSourceIpAddress, TI_ipEntity)\\r\\n    | where ipv4_is_private(TI_ipEntity) == false\\r\\n        and TI_ipEntity !startswith \\\"fe80\\\"\\r\\n        and TI_ipEntity !startswith \\\"::\\\"\\r\\n        and TI_ipEntity !startswith \\\"127.\\\";\\r\\n// Perform a join between IP indicators and CommonSecurityLog events\\r\\nIP_Indicators\\r\\n// Use innerunique to keep performance fast and result set low, as we only need one match to indicate potential malicious activity that needs investigation\\r\\n| join kind=innerunique (\\r\\n    CommonSecurityLog\\r\\n    | where TimeGenerated >= ago(dt_lookBack)\\r\\n    | extend MessageIP = extract(IPRegex, 0, Message)\\r\\n    | extend CS_ipEntity = iff(isnotempty(SourceIP), SourceIP, DestinationIP)\\r\\n    | extend CS_ipEntity = iff(isempty(CS_ipEntity) and isnotempty(MessageIP), MessageIP, CS_ipEntity)\\r\\n    | extend CommonSecurityLog_TimeGenerated = TimeGenerated\\r\\n    )\\r\\n    on $left.TI_ipEntity == $right.CS_ipEntity\\r\\n// Filter out logs that occurred after the expiration of the corresponding indicator\\r\\n| where CommonSecurityLog_TimeGenerated < ExpirationDateTime\\r\\n// Group the results by IndicatorId and CS_ipEntity, and keep the log entry with the latest timestamp\\r\\n| summarize CommonSecurityLog_TimeGenerated = arg_max(CommonSecurityLog_TimeGenerated, *) by IndicatorId, CS_ipEntity\\r\\n// Select the desired output fields\\r\\n| project\\r\\n    timestamp = CommonSecurityLog_TimeGenerated,\\r\\n    SourceIP,\\r\\n    DestinationIP,\\r\\n    MessageIP,\\r\\n    Message,\\r\\n    DeviceVendor,\\r\\n    DeviceProduct,\\r\\n    IndicatorId,\\r\\n    ThreatType,\\r\\n    ExpirationDateTime,\\r\\n    ConfidenceScore,\\r\\n    TI_ipEntity,\\r\\n    CS_ipEntity,\\r\\n    LogSeverity,\\r\\n    DeviceAction,\\r\\n    Type\",\"size\":0,\"title\":\"Fortigate detected Threats\",\"timeContextFromParameter\":\"Timerange\",\"showExportToExcel\":true,\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"gridSettings\":{\"formatters\":[{\"columnMatch\":\"ThreatType\",\"formatter\":0,\"formatOptions\":{\"aggregation\":\"Count\"}}],\"filter\":true,\"sortBy\":[{\"itemKey\":\"ThreatType\",\"sortOrder\":2}]},\"sortBy\":[{\"itemKey\":\"ThreatType\",\"sortOrder\":2}]},\"name\":\"query - 0\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"CommonSecurityLog\\r\\n| where DeviceVendor == \\\"Fortinet\\\"\\r\\n| where DeviceAction == \\\"block\\\"\\r\\n| extend additional_splitted = split(AdditionalExtensions, \\\";\\\")\\r\\n| mv-expand apprisk=additional_splitted[19], app=additional_splitted[17], subtype=additional_splitted[6], applist=additional_splitted[15], appcat=additional_splitted[16]\\r\\n| where apprisk == \\\"ad.apprisk=high\\\" or apprisk == \\\"ad.apprisk=low\\\" or apprisk == \\\"ad.apprisk=critical\\\"\\r\\n| summarize sessions=count() by application = (tostring(app)), risk = (tostring(apprisk))\\r\\n| sort by sessions\",\"size\":0,\"title\":\"FortiNet Blocked Applications\",\"timeContextFromParameter\":\"Timerange\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"visualization\":\"piechart\",\"graphSettings\":{\"type\":0,\"topContent\":{\"columnMatch\":\"category\",\"formatter\":1},\"centerContent\":{\"columnMatch\":\"sessions\",\"formatter\":1,\"numberFormat\":{\"unit\":17,\"options\":{\"maximumSignificantDigits\":3,\"maximumFractionDigits\":2}}}},\"mapSettings\":{\"locInfo\":\"LatLong\",\"sizeSettings\":\"sessions\",\"sizeAggregation\":\"Sum\",\"legendMetric\":\"sessions\",\"legendAggregation\":\"Sum\",\"itemColorSettings\":{\"type\":\"heatmap\",\"colorAggregation\":\"Sum\",\"nodeColorField\":\"sessions\",\"heatmapPalette\":\"greenRed\"}}},\"name\":\"FortiNet Blocked Applications\"}],\"isLocked\":false,\"fallbackResourceIds\":[\"/subscriptions/cb5cec77-24c5-42a8-ab76-87837f101c9c/resourcegroups/rg-sentinel/providers/microsoft.operationalinsights/workspaces/siem-cmit-001\"],\"fromTemplateId\":\"sentinel-UserWorkbook\"}",
+        "version": "1.0",
+        "sourceId": "[parameters('workbookSourceId')]",
+        "category": "[parameters('workbookType')]"
+      }
+    }
+  ],
+  "outputs": {
+    "workbookId": {
+      "type": "string",
+      "value": "[resourceId( 'microsoft.insights/workbooks', parameters('workbookId'))]"
+    }
+  },
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#"
+}
