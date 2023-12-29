@@ -1,0 +1,13 @@
+// Prerequirement: Fortinet Connector for Sentinel  
+// Show all blocked Applications
+// Can be customized by changing apprisk etc.
+// !!AdditionalExtensions seems to be different by Fortinet Release  
+// Can be used in a Workbook to Display all blocked Applications or allowed Applications with Risk  
+CommonSecurityLog
+| where DeviceVendor == "Fortinet"
+| where DeviceAction == "block"
+| extend additional_splitted = split(AdditionalExtensions, ";")
+| mv-expand apprisk=additional_splitted[19], app=additional_splitted[17], subtype=additional_splitted[6], applist=additional_splitted[15], appcat=additional_splitted[16]
+| where apprisk == "ad.apprisk=high" or apprisk == "ad.apprisk=low" or apprisk == "ad.apprisk=critical" 
+| summarize sessions=count() by application = (tostring(app)), category = (tostring(appcat))
+| sort by sessions
