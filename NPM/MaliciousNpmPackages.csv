@@ -1,0 +1,33 @@
+PackageName,KnownBadVersion,ThreatDescription,Source
+ansi-styles,6.2.2,Compromised NPM account; malicious version published (Sept 2025),Checkmarx
+debug,4.4.2,Compromised NPM account; malicious version published (Sept 2025),Checkmarx
+chalk,5.6.1,Compromised NPM account; malicious version published (Sept 2025),Checkmarx
+supports-color,10.2.1,Compromised NPM account; malicious version published (Sept 2025),Checkmarx
+strip-ansi,7.1.1,Compromised NPM account; malicious version published (Sept 2025),Checkmarx
+ansi-regex,6.2.1,Compromised NPM account; malicious version published (Sept 2025),Checkmarx
+wrap-ansi,9.0.1,Compromised NPM account; malicious version published (Sept 2025),Checkmarx
+color-convert,3.1.1,Compromised NPM account; malicious version published (Sept 2025),Checkmarx
+color-name,2.0.1,Compromised NPM account; malicious version published (Sept 2025),Checkmarx
+is-arrayish,0.3.3,Compromised NPM account; malicious version published (Sept 2025),Checkmarx
+slice-ansi,7.1.1,Compromised NPM account; malicious version published (Sept 2025),Checkmarx
+color,5.0.1,Compromised NPM account; malicious version published (Sept 2025),Checkmarx
+color-string,2.1.1,Compromised NPM account; malicious version published (Sept 2025),Checkmarx
+simple-swizzle,0.2.3,Compromised NPM account; malicious version published (Sept 2025),Checkmarx
+supports-hyperlinks,4.1.1,Compromised NPM account; malicious version published (Sept 2025),Checkmarx
+has-ansi,6.0.1,Compromised NPM account; malicious version published (Sept 2025),Checkmarx
+chalk-template,1.1.1,Compromised NPM account; malicious version published (Sept 2025),Checkmarx
+backslash,0.2.1,Compromised NPM account; malicious version published (Sept 2025),Checkmarx
+ua-parser-js,0.7.29,Malicious versions published to steal data (Oct 2021),GitHub Advisory
+ua-parser-js,0.8.0,Malicious versions published to steal data (Oct 2021),GitHub Advisory
+ua-parser-js,1.0.0,Malicious versions published to steal data (Oct 2021),GitHub Advisory
+event-stream,3.3.6,Backdoor via flatmap-stream dependency,npm blog / Snyk
+flatmap-stream,0.1.1,Malicious package (backdoor),npm blog / Snyk
+node-ipc,10.1.1,Protestware: destructive file overwrite for RU/BY IPs,BleepingComputer / Snyk
+node-ipc,10.1.2,Protestware: destructive file overwrite for RU/BY IPs,BleepingComputer / Snyk
+peacenotwar,*,Protestware payload; creates files / messages,Snyk / PortsWigger
+ethers-provider2,*,Malicious package delivering reverse shell,ReversingLabs / Infosecurity
+ethers-providerz,*,Malicious package delivering reverse shell,ReversingLabs / Infosecurity
+web-browserify,*,Brandjacking of browserify; malicious,Sonatype
+fallguys,*,Malware posing as game API,Sonatype
+crossenv,*,Typosquat of cross-env; malicious,Snyk
+@ctrl/tinycolor,*,Affected in Shai-Hulud worm campaign (Sept 2025) – verify exact versions,News reports / Koi Security
