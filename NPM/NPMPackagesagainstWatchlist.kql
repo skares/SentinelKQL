@@ -1,0 +1,17 @@
+// This query searches for npm install commands , extracts the packages and matches them against the Sentinel Watchlist
+let Watchlist =
+    _GetWatchlist('MaliciousNpmPackages')
+    | project SearchKey, PackageName = tolower(PackageName), KnownBadVersion, ThreatDescription
+    | extend KnownBadVersion = replace_regex(KnownBadVersion, @"^[\^~=>=<]*", "");
+DeviceProcessEvents
+| where ProcessCommandLine has "npm install"
+| extend matches = extract_all(@"((?:@[^@\s/]+/)?[^@\s]+)@([^\s]+)", dynamic([1,2]), ProcessCommandLine)
+| where array_length(matches) > 0
+| mv-expand matches
+| extend package = tolower(tostring(matches[0])), rawVersion = tostring(matches[1])
+| extend version = replace_regex(rawVersion, @"^[\^~=>=<]*", "")
+| project Timestamp, DeviceId, DeviceName ,ProcessCommandLine, package, version, ReportId
+| join kind=inner (
+    Watchlist
+) on $left.package == $right.PackageName and $left.version == $right.KnownBadVersion
+| project Timestamp, DeviceId, DeviceName, package, version, ReportId ,ThreatDescription
