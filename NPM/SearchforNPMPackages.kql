@@ -1,0 +1,8 @@
+DeviceProcessEvents
+| where ProcessCommandLine has "npm install"
+| extend matches = extract_all(@"((?:@[^@\s/]+/)?[^@\s]+)@([^\s]+)", dynamic([1,2]), ProcessCommandLine)
+// matches is an array of [package, version] pairs
+| where array_length(matches) > 0
+| mv-expand matches
+| extend package = tostring(matches[0]), version = tostring(matches[1])
+| project Timestamp, DeviceName, ProcessCommandLine, package, version
