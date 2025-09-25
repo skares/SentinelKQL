@@ -18,3 +18,11 @@ mypackage@1.0.0
 → Group1 = mypackage, Group2 = 1.0.0
 @org/mypackage@2.3.4
 → Group1 = @org/mypackage, Group2 = 2.3.4
+
+dynamic([1,2])
+This tells extract_all to return both group 1 and group 2 for each match.
+So the result will be an array of arrays, like:
+[
+  ["mypackage", "1.0.0"],
+  ["@org/mypackage", "2.3.4"]
+]
