@@ -1,8 +1,9 @@
 # Custom Defender Detection Rule to match npm install processes against a Sentinel watchlist with malicious NPM packages
 
-## Setup Steps
+## Setup Steps-
 1. Upload the CSV File to a Watchlist in Sentinel. Update the watchlist before or after upload to have an up2date list. Ensure that the Watchlist Name is the same as in the query.
 
+Updated List is here : https://www.koi.ai/incident/live-updates-sha1-hulud-the-second-coming-hundred-npm-packages-compromised
 Get-Content input.csv | ForEach-Object { $_ + ",text,text" } | Set-Content output.csv
 
 
